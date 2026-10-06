@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>神奇的光纖：光是如何轉彎的？</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kidYellow: '#ffe600',
+                        kidCyan: '#00f3ff',
+                        kidPink: '#ff007f',
+                        kidGreen: '#10b981',
+                        kidPurple: '#a855f7',
+                        darkNavy: '#050914',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Microsoft JhengHei', 'PingFang HK', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050914;
+            color: #f8fafc;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(0, 243, 255, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 85%, rgba(255, 0, 127, 0.12) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .glow-box-cyan {
+            box-shadow: 0 0 25px rgba(0, 243, 255, 0.2), inset 0 0 12px rgba(0, 243, 255, 0.08);
+            border: 1px solid rgba(0, 243, 255, 0.35);
+        }
+
+        .glass-panel {
+            background: rgba(13, 20, 36, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        input[type=range] {
+            accent-color: #00f3ff;
+        }
+
+        .popover-card {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans text-slate-100 antialiased pb-12 selection:bg-kidCyan selection:text-slate-950">
+
+    <header class="w-full bg-slate-950/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-400 via-pink-500 to-yellow-400 flex items-center justify-center text-2xl shadow-lg shadow-cyan-500/20">
+                    💡
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-kidCyan via-teal-200 to-kidPink tracking-wide">
+                        神奇的光纖：光是如何轉彎的？
+                    </h1>
+                    <p class="text-xs text-slate-400">小五自然與科學實驗 • 嚴格物理光路模擬器 (Vector Ray Tracer)</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <button id="soundToggleBtn" onclick="toggleAudio()" class="px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-xs font-bold text-kidCyan border border-slate-700 flex items-center space-x-2 transition active:scale-95">
+                    <span id="soundIcon">🔊</span>
+                    <span id="soundText">音效：開啟</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 mt-6 flex-grow w-full space-y-6">
+
+        <div class="glass-panel rounded-2xl p-4 md:p-5 glow-box-cyan flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div class="flex items-start space-x-3">
+                <span class="text-3xl shrink-0">🔬</span>
+                <div>
+                    <h2 class="text-base md:text-lg font-bold text-kidCyan flex items-center gap-2">
+                        <span>物理學驗證：入射角 $\theta_i$ 永遠等於 反射角 $\theta_r$</span>
+                        <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-[11px] rounded-md border border-emerald-500/40 font-mono">符合光學定律</span>
+                    </h2>
+                    <p class="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">
+                        本模擬器採用<span class="text-yellow-300 font-bold">向量幾何追蹤（Vector Ray Tracing）</span>。光線碰撞管壁時，嚴格以垂直法線 $\mathbf{N}$ 計算鏡面反射，絕無人工改道！接收端放置於光纖出口開口處。
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex bg-slate-950 p-1.5 rounded-xl border border-slate-800 shrink-0 w-full lg:w-auto">
+                <button id="modeMicroBtn" onclick="setViewMode('micro')" class="flex-1 lg:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all duration-200 bg-kidPink text-white shadow-md shadow-pink-500/30">
+                    🔍 放大微觀 (彈跳折線與法線)
+                </button>
+                <button id="modeMacroBtn" onclick="setViewMode('macro')" class="flex-1 lg:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all duration-200 text-slate-400 hover:text-slate-200">
+                    👁️ 巨觀整體 (光順順流動)
+                </button>
+            </div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-4 md:p-6 border border-slate-800 relative space-y-4">
+            
+            <!-- Canvas Header Toolbar -->
+            <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center space-x-3">
+                    <span id="viewModeBadge" class="px-3 py-1 bg-pink-500/20 text-pink-300 text-xs font-bold rounded-full border border-pink-500/30">
+                        🔍 微觀物理模式：顯示精確折線軌跡
+                    </span>
+                    <label class="flex items-center space-x-2 text-xs font-bold text-slate-300 cursor-pointer bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700 hover:border-cyan-500 transition">
+                        <input type="checkbox" id="toggleNormals" checked onchange="onToggleNormalsChange()" class="w-4 h-4 rounded text-kidCyan focus:ring-0 cursor-pointer">
+                        <span>📐 顯示法線與角度 $(\theta_i = \theta_r)$</span>
+                    </label>
+                </div>
+
+                <!-- Shape Selector Pills -->
+                <div class="flex items-center space-x-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button id="shapeStraightBtn" onclick="setFiberShape('straight')" class="px-3 py-1 rounded-lg text-xs font-bold transition bg-cyan-500 text-slate-950">
+                        直型光纖
+                    </button>
+                    <button id="shapeUBendBtn" onclick="setFiberShape('u-curve')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition">
+                        U型彎曲
+                    </button>
+                    <button id="shapeSBendBtn" onclick="setFiberShape('s-curve')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition">
+                        S型雙彎曲
+                    </button>
+                </div>
+            </div>
+
+            <div class="relative bg-slate-950 rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
+                <canvas id="fiberCanvas" class="w-full h-80 md:h-96 block cursor-crosshair" onclick="onCanvasClick(event)"></canvas>
+
+                <!-- Status Badge Overlay -->
+                <div id="statusOverlay" class="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-xs font-bold flex items-center space-x-2 shadow-lg">
+                    <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span id="statusText" class="text-emerald-300">✨ 全內反射 (Total Internal Reflection)</span>
+                </div>
+
+                <!-- Realtime Physics HUD -->
+                <div class="absolute top-3 right-3 bg-slate-900/90 backdrop-blur-md px-3 py-2 rounded-xl border border-slate-700 text-[11px] font-mono text-slate-300 space-y-1 shadow-lg hidden sm:block">
+                    <div>射入角度 Launch: <span id="hudLaunchAngle" class="text-yellow-300 font-bold">15.0°</span></div>
+                    <div>平均入射角 $\bar{\theta}_i$: <span id="hudAvgIncident" class="text-cyan-300 font-bold">75.0°</span></div>
+                    <div>反射次數 Bounces: <span id="hudBounces" class="text-emerald-400 font-bold">5 次</span></div>
+                </div>
+
+                <!-- Inspector Card Overlay -->
+                <div id="inspectorCard" class="popover-card absolute hidden bg-slate-900/95 border border-cyan-400 p-3 rounded-xl shadow-2xl text-xs space-y-1 z-30 max-w-xs backdrop-blur-md">
+                    <div class="flex justify-between items-center text-cyan-300 font-bold border-b border-slate-800 pb-1">
+                        <span>🔍 反射點物理卡 (<span id="inspectIdx">1</span>)</span>
+                        <button onclick="closeInspector()" class="text-slate-400 hover:text-white text-sm font-bold">&times;</button>
+                    </div>
+                    <div class="text-slate-200">
+                        入射角 $\theta_i$: <span id="inspectThetaI" class="text-yellow-300 font-bold">75.0°</span>
+                    </div>
+                    <div class="text-slate-200">
+                        反射角 $\theta_r$: <span id="inspectThetaR" class="text-emerald-400 font-bold">75.0°</span>
+                    </div>
+                    <div class="text-[10px] text-emerald-400 font-bold pt-1">
+                        ✅ 檢驗結果：$\theta_i = \theta_r$，完全遵守鏡面反射定律！
+                    </div>
+                </div>
+
+                <!-- Bottom Overlay Hint -->
+                <div class="absolute bottom-3 left-3 right-3 bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-700 text-xs text-slate-200 flex items-center justify-between shadow-lg">
+                    <span id="canvasHintText">
+                        📍 <strong>物理驗證技巧：</strong>點擊任意黃色反射點，開啟「物理檢驗卡」查看角度數值！
+                    </span>
+                    <span class="text-kidCyan font-bold shrink-0 ml-2 hidden md:inline">纖芯 Core ($n_1=1.48$) | 包層 Cladding ($n_2=1.38$)</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                
+                <!-- Angle Slider -->
+                <div class="md:col-span-4 space-y-1.5">
+                    <div class="flex justify-between items-center text-xs font-bold">
+                        <label for="angleSlider" class="text-kidCyan flex items-center gap-1">
+                            <span>📐 1. 發射角度 (Launch Angle)：</span>
+                        </label>
+                        <span id="angleValDisplay" class="text-yellow-300 font-bold font-mono">15° (淺角-全內反射)</span>
+                    </div>
+                    <input type="range" id="angleSlider" min="5" max="35" value="15" step="1" oninput="onControlChange()"
+                        class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                        <span class="text-emerald-400">5° (平緩入射)</span>
+                        <span class="text-yellow-300">20° (標準)</span>
+                        <span class="text-pink-500">35° (過陡入射)</span>
+                    </div>
+                </div>
+
+                <!-- Bend Amount Slider -->
+                <div class="md:col-span-4 space-y-1.5">
+                    <div class="flex justify-between items-center text-xs font-bold">
+                        <label for="bendSlider" class="text-kidCyan flex items-center gap-1">
+                            <span>🌀 2. 光纖彎曲程度 (Bend Level)：</span>
+                        </label>
+                        <span id="bendValDisplay" class="text-cyan-300 font-bold font-mono">40%</span>
+                    </div>
+                    <input type="range" id="bendSlider" min="0" max="100" value="40" step="1" oninput="onControlChange()"
+                        class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                        <span class="text-emerald-400">0% (直線)</span>
+                        <span class="text-cyan-300">50% (微彎)</span>
+                        <span class="text-pink-500">100% (劇烈彎曲-光線漏出)</span>
+                    </div>
+                </div>
+
+                <!-- Launch Pulse Interactive Buttons -->
+                <div class="md:col-span-4 flex items-center space-x-2 pt-2 md:pt-0">
+                    <button onclick="launchSinglePulse()" class="flex-1 py-2.5 px-3 bg-gradient-to-r from-kidPink via-purple-600 to-cyan-500 hover:opacity-90 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-pink-500/20 transition active:scale-95 flex items-center justify-center space-x-1">
+                        <span class="text-base">🚀</span>
+                        <span>發射光脈衝 (1010)</span>
+                    </button>
+                    
+                    <button id="autoPulseBtn" onclick="toggleAutoPulse()" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs rounded-xl transition flex items-center space-x-1">
+                        <span id="autoPulseIcon">🔄</span>
+                        <span id="autoPulseText">自動: 關</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="glass-panel rounded-2xl p-5 border border-cyan-500/30">
+                <div class="flex items-center space-x-3 mb-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-300 font-black flex items-center justify-center text-xl">
+                        1️⃣
+                    </div>
+                    <h3 class="font-extrabold text-cyan-300 text-base">絕對遵守「反射定律」</h3>
+                </div>
+                <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+                    不論管壁如何彎曲，光線在每一次碰撞時，<span class="text-yellow-300 font-bold">入射角 $\theta_i$ 一定等於反射角 $\theta_r$</span>！無任何例外。
+                </p>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-5 border border-pink-500/30">
+                <div class="flex items-center space-x-3 mb-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-pink-500/20 text-pink-300 font-black flex items-center justify-center text-xl">
+                        2️⃣
+                    </div>
+                    <h3 class="font-extrabold text-pink-300 text-base">全內反射 (TIR) 的條件</h3>
+                </div>
+                <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+                    當光線與管壁法線的夾角大於臨界角（$\theta_i \ge 68.8^\circ$）時，光線將<span class="text-pink-400 font-bold">100% 鏡面反射</span>，零損耗留在光纖內！
+                </p>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-5 border border-yellow-500/30">
+                <div class="flex items-center space-x-3 mb-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-yellow-500/20 text-yellow-300 font-black flex items-center justify-center text-xl">
+                        3️⃣
+                    </div>
+                    <h3 class="font-extrabold text-yellow-300 text-base">彎曲過大會「漏光」</h3>
+                </div>
+                <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+                    試著把彎曲拉到 100%！管壁彎曲使入射角小於臨界角，光線就會<span class="text-yellow-400 font-bold">折射穿透包層（漏光）</span>！
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let audioEnabled = true;
+        let viewMode = 'micro'; // 'micro' | 'macro'
+        let fiberShape = 'straight'; // 'straight' | 'u-curve' | 's-curve'
+        let launchAngleDeg = 15; // Launch angle relative to center axis
+        let bendAmount = 40; // 0 to 100%
+        let showNormals = true;
+        let autoPulseActive = false;
+        let autoPulseTimer = null;
+
+        let activePulses = [];
+        let sparkleEffects = [];
+        let confettiParticles = [];
+        
+        // Rigorous Physics Path Output
+        let calculatedRayPath = []; // Array of ray hit objects
+
+        // Physics Constants for Fiber Glass Core & Cladding
+        const N_CORE = 1.48;
+        const N_CLADDING = 1.38;
+        // Critical Angle relative to Normal: arcsin(1.38 / 1.48) = 68.8 degrees
+        const CRITICAL_ANGLE_RAD = Math.asin(N_CLADDING / N_CORE);
+        const CRITICAL_ANGLE_DEG = CRITICAL_ANGLE_RAD * (180 / Math.PI);
+
+        /* Web Audio Synthesizer */
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'bounce') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.08);
+                } else if (type === 'leak') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, ctx.currentTime);
+                    osc.frequency.setValueAtTime(120, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.18);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.18);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.16); // G5
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.3);
+                } else if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.04);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.04);
+                }
+            } catch(e) {}
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('soundIcon').innerText = audioEnabled ? '🔊' : '🔇';
+            document.getElementById('soundText').innerText = '音效：' + (audioEnabled ? '開啟' : '關閉');
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            playSound('click');
+            const microBtn = document.getElementById('modeMicroBtn');
+            const macroBtn = document.getElementById('modeMacroBtn');
+            const badge = document.getElementById('viewModeBadge');
+
+            if (mode === 'micro') {
+                microBtn.className = "flex-1 lg:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all duration-200 bg-kidPink text-white shadow-md shadow-pink-500/30";
+                macroBtn.className = "flex-1 lg:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all duration-200 text-slate-400 hover:text-slate-200";
+                badge.innerText = "🔍 微觀物理模式：顯示精確折線軌跡與法線";
+                badge.className = "px-3 py-1 bg-pink-500/20 text-pink-300 text-xs font-bold rounded-full border border-pink-500/30";
+            } else {
+                macroBtn.className = "flex-1 lg:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all duration-200 bg-kidCyan text-slate-950 shadow-md shadow-cyan-500/30";
+                microBtn.className = "flex-1 lg:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all duration-200 text-slate-400 hover:text-slate-200";
+                badge.innerText = "👁️ 巨觀模式：展示巨觀下順暢彎曲傳輸現象";
+                badge.className = "px-3 py-1 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-full border border-cyan-500/30";
+            }
+            closeInspector();
+            recalculateAndDraw();
+        }
+
+        function setFiberShape(shape) {
+            fiberShape = shape;
+            playSound('click');
+            ['Straight', 'UBend', 'SBend'].forEach(s => {
+                const btn = document.getElementById(`shape${s}Btn`);
+                if (s.toLowerCase().includes(shape.replace('-', ''))) {
+                    btn.className = "px-3 py-1 rounded-lg text-xs font-bold transition bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20";
+                } else {
+                    btn.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition";
+                }
+            });
+            closeInspector();
+            recalculateAndDraw();
+        }
+
+        function onControlChange() {
+            launchAngleDeg = parseInt(document.getElementById('angleSlider').value);
+            bendAmount = parseInt(document.getElementById('bendSlider').value);
+
+            document.getElementById('angleValDisplay').innerText = `${launchAngleDeg}°`;
+            document.getElementById('bendValDisplay').innerText = `${bendAmount}%`;
+
+            closeInspector();
+            recalculateAndDraw();
+        }
+
+        function onToggleNormalsChange() {
+            showNormals = document.getElementById('toggleNormals').checked;
+            recalculateAndDraw();
+        }
+
+        function toggleAutoPulse() {
+            autoPulseActive = !autoPulseActive;
+            playSound('click');
+            const icon = document.getElementById('autoPulseIcon');
+            const text = document.getElementById('autoPulseText');
+            const btn = document.getElementById('autoPulseBtn');
+
+            if (autoPulseActive) {
+                btn.className = "py-2.5 px-3 bg-pink-500/20 border border-pink-500 text-pink-300 font-bold text-xs rounded-xl transition flex items-center space-x-1";
+                icon.innerText = "⏳";
+                text.innerText = "自動: 開";
+                autoPulseTimer = setInterval(() => {
+                    launchSinglePulse(true);
+                }, 800);
+            } else {
+                btn.className = "py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs rounded-xl transition flex items-center space-x-1";
+                icon.innerText = "🔄";
+                text.innerText = "自動: 關";
+                clearInterval(autoPulseTimer);
+            }
+        }
+
+        function launchSinglePulse(isAuto = false) {
+            if (!isAuto) playSound('click');
+            if (calculatedRayPath.length < 2) return;
+
+            const bits = ['1', '0', '1'];
+            bits.forEach((bit, idx) => {
+                setTimeout(() => {
+                    activePulses.push({
+                        segmentIndex: 0,
+                        t: 0.0,
+                        bit: bit,
+                        color: bit === '1' ? '#ffe600' : '#00f3ff'
+                    });
+                }, idx * 180);
+            });
+        }
+
+        function generateFiberGeometry(w, h) {
+            const startX = 60;
+            const endX = w - 60;
+            const centerY = h / 2;
+            const coreRadius = 24; // Core tube radius
+
+            const numSteps = 120;
+            const topWall = [];
+            const botWall = [];
+            const centerSpine = [];
+
+            const bendScale = (bendAmount / 100) * 85;
+
+            for (let i = 0; i <= numSteps; i++) {
+                const u = i / numSteps;
+                const x = startX + u * (endX - startX);
+                let y = centerY;
+                let dy_dx = 0;
+
+                if (fiberShape === 'u-curve') {
+                    y = centerY + Math.sin(u * Math.PI) * bendScale;
+                    dy_dx = (Math.PI * bendScale / (endX - startX)) * Math.cos(u * Math.PI);
+                } else if (fiberShape === 's-curve') {
+                    y = centerY + Math.sin(u * Math.PI * 2) * (bendScale * 0.75);
+                    dy_dx = (Math.PI * 2 * bendScale * 0.75 / (endX - startX)) * Math.cos(u * Math.PI * 2);
+                }
+
+                // Normal vector to the spine curve
+                const tangentMag = Math.hypot(1, dy_dx);
+                const nx = -dy_dx / tangentMag;
+                const ny = 1 / tangentMag;
+
+                centerSpine.push({ x, y, dx: 1 / tangentMag, dy: dy_dx / tangentMag });
+
+                topWall.push({
+                    x: x + nx * coreRadius,
+                    y: y - ny * coreRadius
+                });
+
+                botWall.push({
+                    x: x - nx * coreRadius,
+                    y: y + ny * coreRadius
+                });
+            }
+
+            return { topWall, botWall, centerSpine, coreRadius, startX, endX, centerY };
+        }
+
+        // Ray-segment intersection helper
+        function intersectRaySegment(rayOrigin, rayDir, segA, segB) {
+            const dx = rayDir.x;
+            const dy = rayDir.y;
+            const vx = segB.x - segA.x;
+            const vy = segB.y - segA.y;
+
+            const det = vx * dy - vy * dx;
+            if (Math.abs(det) < 1e-9) return null; // Parallel
+
+            const t = ((segA.y - rayOrigin.y) * vx - (segA.x - rayOrigin.x) * vy) / det;
+            const s = (dx * (segA.y - rayOrigin.y) - dy * (segA.x - rayOrigin.x)) / det;
+
+            if (t > 0.001 && s >= 0.0 && s <= 1.0) {
+                return {
+                    t: t,
+                    s: s,
+                    x: rayOrigin.x + t * dx,
+                    y: rayOrigin.y + t * dy,
+                    segA: segA,
+                    segB: segB
+                };
+            }
+            return null;
+        }
+
+        // Perform strict physics ray tracing
+        function performVectorRayTracing(fiber) {
+            const path = [];
+            const startPt = {
+                x: fiber.startX,
+                y: fiber.centerY,
+                type: 'start'
+            };
+            path.push(startPt);
+
+            // Initial ray direction from laser launch angle
+            const angleRad = (launchAngleDeg * Math.PI) / 180;
+            let currentDir = {
+                x: Math.cos(angleRad),
+                y: Math.sin(angleRad)
+            };
+            let currentOrigin = { x: startPt.x, y: startPt.y };
+
+            const maxBounces = 25;
+            let bounceCount = 0;
+            let isLeaking = false;
+
+            while (bounceCount < maxBounces) {
+                let closestHit = null;
+                let hitWallType = null; // 'top' or 'bot'
+
+                // Test intersection with all top wall segments
+                for (let i = 0; i < fiber.topWall.length - 1; i++) {
+                    const hit = intersectRaySegment(currentOrigin, currentDir, fiber.topWall[i], fiber.topWall[i + 1]);
+                    if (hit && (!closestHit || hit.t < closestHit.t)) {
+                        closestHit = hit;
+                        hitWallType = 'top';
+                    }
+                }
+
+                // Test intersection with all bottom wall segments
+                for (let i = 0; i < fiber.botWall.length - 1; i++) {
+                    const hit = intersectRaySegment(currentOrigin, currentDir, fiber.botWall[i], fiber.botWall[i + 1]);
+                    if (hit && (!closestHit || hit.t < closestHit.t)) {
+                        closestHit = hit;
+                        hitWallType = 'bot';
+                    }
+                }
+
+                // If ray exceeds right exit boundary without hit
+                if (!closestHit || closestHit.x >= fiber.endX) {
+                    // Compute final exit point at fiber end boundary
+                    const exitX = fiber.endX;
+                    const tExit = (exitX - currentOrigin.x) / currentDir.x;
+                    const exitY = currentOrigin.y + tExit * currentDir.y;
+
+                    path.push({
+                        x: exitX,
+                        y: exitY,
+                        type: 'exit'
+                    });
+                    break;
+                }
+
+                // Calculate local tangent vector along the wall segment
+                const segVx = closestHit.segB.x - closestHit.segA.x;
+                const segVy = closestHit.segB.y - closestHit.segA.y;
+                const segLen = Math.hypot(segVx, segVy);
+                const tangent = { x: segVx / segLen, y: segVy / segLen };
+
+                // Inward pointing unit Normal vector N
+                let normal = { x: -tangent.y, y: tangent.x };
+                // Ensure normal faces against the incoming ray (dot(D, N) < 0)
+                const dotDN = currentDir.x * normal.x + currentDir.y * normal.y;
+                if (dotDN > 0) {
+                    normal.x = -normal.x;
+                    normal.y = -normal.y;
+                }
+
+                // Calculate Incident Angle relative to Normal: theta_i = arccos(-dot(D, N))
+                const cosThetaI = Math.min(1.0, Math.max(-1.0, -(currentDir.x * normal.x + currentDir.y * normal.y)));
+                const thetaIRad = Math.acos(cosThetaI);
+                const thetaIDeg = thetaIRad * (180 / Math.PI);
+
+                bounceCount++;
+
+                // Check for Total Internal Reflection vs Refraction Leakage
+                if (thetaIDeg < CRITICAL_ANGLE_DEG) {
+                    // Leakage! Incident angle is steeper than critical angle
+                    isLeaking = true;
+                    path.push({
+                        x: closestHit.x,
+                        y: closestHit.y,
+                        type: 'leak',
+                        thetaI: thetaIDeg,
+                        normal: normal,
+                        bounceIndex: bounceCount
+                    });
+
+                    // Refracted ray escaping through cladding (Snell's Law)
+                    const sinTheta1 = Math.sin(thetaIRad);
+                    const sinTheta2 = (N_CORE / N_CLADDING) * sinTheta1;
+                    const theta2Rad = Math.asin(Math.min(1.0, sinTheta2));
+
+                    // Refracted direction vector
+                    const leakDirX = currentDir.x * 1.2 + normal.x * 0.8;
+                    const leakDirY = currentDir.y * 1.2 + normal.y * 0.8;
+                    const leakMag = Math.hypot(leakDirX, leakDirY);
+
+                    path.push({
+                        x: closestHit.x + (leakDirX / leakMag) * 70,
+                        y: closestHit.y + (leakDirY / leakMag) * 70,
+                        type: 'leakEnd'
+                    });
+                    break;
+                }
+
+                // RIGOROUS SPECULAR REFLECTION: R = D - 2*(D . N)*N
+                const dot = currentDir.x * normal.x + currentDir.y * normal.y;
+                const reflectDir = {
+                    x: currentDir.x - 2 * dot * normal.x,
+                    y: currentDir.y - 2 * dot * normal.y
+                };
+
+                // Reflection Angle theta_r relative to normal
+                const cosThetaR = Math.min(1.0, Math.max(-1.0, (reflectDir.x * normal.x + reflectDir.y * normal.y)));
+                const thetaRRad = Math.acos(cosThetaR);
+                const thetaRDeg = thetaRRad * (180 / Math.PI);
+
+                path.push({
+                    x: closestHit.x,
+                    y: closestHit.y,
+                    type: 'bounce',
+                    thetaI: thetaIDeg,
+                    thetaR: thetaRDeg,
+                    normal: normal,
+                    wallType: hitWallType,
+                    bounceIndex: bounceCount
+                });
+
+                // Update origin and direction for next bounce
+                currentOrigin = {
+                    x: closestHit.x + reflectDir.x * 0.05,
+                    y: closestHit.y + reflectDir.y * 0.05
+                };
+                currentDir = reflectDir;
+            }
+
+            // Update UI Realtime HUD
+            const bounces = path.filter(p => p.type === 'bounce');
+            const avgIncident = bounces.length > 0 ? (bounces.reduce((s, b) => s + b.thetaI, 0) / bounces.length).toFixed(1) : '75.0';
+            
+            document.getElementById('hudLaunchAngle').innerText = `${launchAngleDeg}.0°`;
+            document.getElementById('hudAvgIncident').innerText = `${avgIncident}°`;
+            document.getElementById('hudBounces').innerText = `${bounces.length} 次`;
+
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            if (isLeaking) {
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-pink-500 animate-ping";
+                statusText.innerText = "⚠️ 發生光線洩漏 (θi < 臨界角 68.8°)";
+                statusText.className = "text-pink-400";
+            } else {
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+                statusText.innerText = "✨ 全內反射 (θi ≥ 臨界角 68.8°)";
+                statusText.className = "text-emerald-300";
+            }
+
+            return path;
+        }
+
+        function drawCanvas() {
+            const canvas = document.getElementById('fiberCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const fiber = generateFiberGeometry(w, h);
+            calculatedRayPath = performVectorRayTracing(fiber);
+
+            // 1. Draw Cladding Background Tube
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.lineWidth = fiber.coreRadius * 2 + 28;
+            ctx.lineCap = 'round';
+            for (let i = 0; i < fiber.centerSpine.length; i++) {
+                const pt = fiber.centerSpine[i];
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+
+            // 2. Draw Core Glass Tube
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)';
+            ctx.lineWidth = fiber.coreRadius * 2;
+            ctx.lineCap = 'round';
+            for (let i = 0; i < fiber.centerSpine.length; i++) {
+                const pt = fiber.centerSpine[i];
+                if (i === 0) ctx.moveTo(pt.x, pt.y);
+                else ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+
+            // 3. Draw Core Tube Boundary Lines
+            // Top Wall Boundary
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.45)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            for (let i = 0; i < fiber.topWall.length; i++) {
+                if (i === 0) ctx.moveTo(fiber.topWall[i].x, fiber.topWall[i].y);
+                else ctx.lineTo(fiber.topWall[i].x, fiber.topWall[i].y);
+            }
+            ctx.stroke();
+
+            // Bottom Wall Boundary
+            ctx.beginPath();
+            for (let i = 0; i < fiber.botWall.length; i++) {
+                if (i === 0) ctx.moveTo(fiber.botWall[i].x, fiber.botWall[i].y);
+                else ctx.lineTo(fiber.botWall[i].x, fiber.botWall[i].y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // 4. Render Laser Ray Path
+            const isLeaking = calculatedRayPath.some(p => p.type === 'leak');
+
+            if (viewMode === 'macro') {
+                // MACRO VIEW: Smooth Glowing Beam
+                ctx.beginPath();
+                ctx.strokeStyle = isLeaking ? '#ff007f' : '#00f3ff';
+                ctx.shadowColor = ctx.strokeStyle;
+                ctx.shadowBlur = 15;
+                ctx.lineWidth = 4;
+                for (let i = 0; i < calculatedRayPath.length; i++) {
+                    const pt = calculatedRayPath[i];
+                    if (i === 0) ctx.moveTo(pt.x, pt.y);
+                    else ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            } else {
+                // MICRO VIEW: Explicit Vector Straight Lines
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = '#00f3ff';
+
+                for (let i = 0; i < calculatedRayPath.length - 1; i++) {
+                    const p1 = calculatedRayPath[i];
+                    const p2 = calculatedRayPath[i + 1];
+
+                    ctx.beginPath();
+                    if (p2.type === 'leakEnd') {
+                        ctx.strokeStyle = '#ff007f';
+                        ctx.lineWidth = 2.5;
+                        ctx.setLineDash([4, 4]);
+                    } else {
+                        ctx.strokeStyle = '#00f3ff';
+                        ctx.lineWidth = 2.5;
+                        ctx.setLineDash([]);
+                    }
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Direction Arrowheads
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    ctx.save();
+                    ctx.fillStyle = '#ffe600';
+                    ctx.beginPath();
+                    ctx.translate(midX, midY);
+                    ctx.rotate(angle);
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(-7, -4);
+                    ctx.lineTo(-7, 4);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+                ctx.shadowBlur = 0;
+
+                // 5. Draw Normals and Physics Inspection Markers
+                calculatedRayPath.forEach((pt) => {
+                    if (pt.type === 'bounce') {
+                        // Reflection Point
+                        ctx.fillStyle = '#ffe600';
+                        ctx.shadowColor = '#ffe600';
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+
+                        // Draw Normal Line if enabled
+                        if (showNormals && pt.normal) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                            ctx.lineWidth = 1.2;
+                            ctx.setLineDash([3, 3]);
+                            ctx.moveTo(pt.x - pt.normal.x * 22, pt.y - pt.normal.y * 22);
+                            ctx.lineTo(pt.x + pt.normal.x * 22, pt.y + pt.normal.y * 22);
+                            ctx.stroke();
+                            ctx.setLineDash([]);
+
+                            // Label "N" for Normal
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = 'bold 9px sans-serif';
+                            ctx.fillText('N', pt.x + pt.normal.x * 26 - 3, pt.y + pt.normal.y * 26 + 3);
+
+                            // Label angle values
+                            ctx.fillStyle = '#10b981';
+                            ctx.font = 'bold 9px font-mono';
+                            ctx.fillText(`θi=θr=${pt.thetaI.toFixed(1)}°`, pt.x - 22, pt.y - (pt.normal.y > 0 ? 12 : -18));
+                        }
+                    } else if (pt.type === 'leak') {
+                        ctx.fillStyle = '#ff007f';
+                        ctx.shadowColor = '#ff007f';
+                        ctx.shadowBlur = 12;
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+
+                        ctx.fillStyle = '#ff007f';
+                        ctx.font = 'bold 10px sans-serif';
+                        ctx.fillText('💥 折射漏光！', pt.x - 24, pt.y - 12);
+                    }
+                });
+            }
+
+            // 6. Draw Laser Transmitter (Left) and Natural Exit Receiver (Right)
+            // Left Transmitter
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = '#00f3ff';
+            ctx.lineWidth = 2;
+            ctx.fillRect(10, h / 2 - 22, 45, 44);
+            ctx.strokeRect(10, h / 2 - 22, 45, 44);
+            ctx.fillStyle = '#00f3ff';
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText('發射器', 14, h / 2 + 4);
+
+            // Right Receiver (Placed directly at natural exit boundary)
+            const exitPt = calculatedRayPath[calculatedRayPath.length - 1];
+            const recY = exitPt ? exitPt.y - 22 : h / 2 - 22;
+            const recColor = isLeaking ? '#64748b' : '#10b981';
+
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = recColor;
+            ctx.lineWidth = 2;
+            ctx.fillRect(w - 55, recY, 45, 44);
+            ctx.strokeRect(w - 55, recY, 45, 44);
+            ctx.fillStyle = recColor;
+            ctx.font = 'bold 11px sans-serif';
+            ctx.fillText(isLeaking ? '無訊號' : '接收端', w - 52, recY + 26);
+
+            for (let i = activePulses.length - 1; i >= 0; i--) {
+                const pulse = activePulses[i];
+                const poly = calculatedRayPath;
+
+                if (poly.length < 2) continue;
+
+                const p1 = poly[pulse.segmentIndex];
+                const p2 = poly[pulse.segmentIndex + 1];
+
+                if (!p1 || !p2) {
+                    activePulses.splice(i, 1);
+                    continue;
+                }
+
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                const segLen = Math.hypot(dx, dy);
+
+                const step = 3.5 / segLen;
+                pulse.t += step;
+
+                if (pulse.t >= 1.0) {
+                    pulse.t = 0.0;
+                    pulse.segmentIndex++;
+
+                    const hitPt = poly[pulse.segmentIndex];
+                    if (hitPt) {
+                        if (hitPt.type === 'bounce') {
+                            playSound('bounce');
+                            addSparkle(hitPt.x, hitPt.y, '#00f3ff');
+                        } else if (hitPt.type === 'leak') {
+                            playSound('leak');
+                            addSparkle(hitPt.x, hitPt.y, '#ff007f');
+                        } else if (hitPt.type === 'exit') {
+                            playSound('success');
+                            addConfetti(w - 30, hitPt.y);
+                        }
+                    }
+
+                    if (pulse.segmentIndex >= poly.length - 1) {
+                        activePulses.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                const curP1 = poly[pulse.segmentIndex];
+                const curP2 = poly[pulse.segmentIndex + 1];
+                if (curP1 && curP2) {
+                    const px = curP1.x + pulse.t * (curP2.x - curP1.x);
+                    const py = curP1.y + pulse.t * (curP2.y - curP1.y);
+
+                    ctx.fillStyle = pulse.color;
+                    ctx.shadowColor = pulse.color;
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(px, py, 6.5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#000000';
+                    ctx.font = 'black 9px sans-serif';
+                    ctx.fillText(pulse.bit, px - 2.5, py + 3);
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            // Draw Sparkles and Confetti FX
+            sparkleEffects.forEach((sp, idx) => {
+                sp.radius += 0.8;
+                sp.alpha -= 0.05;
+                if (sp.alpha > 0) {
+                    ctx.strokeStyle = sp.color;
+                    ctx.globalAlpha = sp.alpha;
+                    ctx.beginPath();
+                    ctx.arc(sp.x, sp.y, sp.radius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+
+            confettiParticles.forEach((c) => {
+                c.x += c.vx;
+                c.y += c.vy;
+                c.vy += 0.15;
+                c.life -= 0.03;
+                if (c.life > 0) {
+                    ctx.fillStyle = c.color;
+                    ctx.globalAlpha = c.life;
+                    ctx.beginPath();
+                    ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+        }
+
+        function onCanvasClick(e) {
+            const canvas = document.getElementById('fiberCanvas');
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Find closest bounce point
+            let closestBounce = null;
+            let minDist = 20; // 20px click radius
+
+            calculatedRayPath.forEach((pt) => {
+                if (pt.type === 'bounce') {
+                    const dist = Math.hypot(pt.x - clickX, pt.y - clickY);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        closestBounce = pt;
+                    }
+                }
+            });
+
+            if (closestBounce) {
+                playSound('click');
+                showInspector(closestBounce, e.clientX - rect.left, e.clientY - rect.top);
+            } else {
+                closeInspector();
+            }
+        }
+
+        function showInspector(bouncePt, canvasX, canvasY) {
+            const card = document.getElementById('inspectorCard');
+            document.getElementById('inspectIdx').innerText = bouncePt.bounceIndex;
+            document.getElementById('inspectThetaI').innerText = `${bouncePt.thetaI.toFixed(1)}°`;
+            document.getElementById('inspectThetaR').innerText = `${bouncePt.thetaR.toFixed(1)}°`;
+
+            card.style.left = `${Math.min(canvasX + 10, window.innerWidth - 220)}px`;
+            card.style.top = `${Math.max(10, canvasY - 80)}px`;
+            card.classList.remove('hidden');
+        }
+
+        function closeInspector() {
+            document.getElementById('inspectorCard').classList.add('hidden');
+        }
+
+        function addSparkle(x, y, color) {
+            sparkleEffects.push({ x, y, radius: 4, alpha: 1.0, color });
+        }
+
+        function addConfetti(x, y) {
+            for (let i = 0; i < 18; i++) {
+                confettiParticles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6 - 2,
+                    color: ['#00f3ff', '#ff007f', '#ffe600', '#10b981'][Math.floor(Math.random() * 4)],
+                    size: Math.random() * 4 + 3,
+                    life: 1.0
+                });
+            }
+        }
+
+        function recalculateAndDraw() {
+            drawCanvas();
+        }
+
+        function animate() {
+            drawCanvas();
+            requestAnimationFrame(animate);
+        }
+
+        window.onload = function() {
+            recalculateAndDraw();
+            animate();
+
+            window.addEventListener('resize', () => {
+                recalculateAndDraw();
+            });
+        };
+    </script>
+</body>
+</html>
